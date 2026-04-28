@@ -29,22 +29,33 @@ else
     COMPOSE_CMD="docker-compose"
 fi
 
-# Check if .env file exists
+# Check if .env file exists, create minimal one if not
 if [ ! -f .env ]; then
-    echo "⚠️  .env file not found. Creating from .env.example..."
-    cp .env.example .env
-    echo "✅ .env file created. Please update with your settings."
+    echo "⚠️  .env file not found. Creating minimal .env..."
+    cat > .env << 'EOF'
+# Database Configuration
+DATABASE_URL=postgresql://photographer:photographer_password@db:5432/photographer_prod
+
+# Application Settings
+SECRET_KEY_BASE=change_this
+PORT=4000
+POOL_SIZE=10
+
+# Email Configuration (optional)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USERNAME=
+SMTP_PASSWORD=
+SMTP_FROM=noreply@example.com
+EOF
+    echo "✅ .env file created with default values."
     echo ""
 fi
 
-# Generate SECRET_KEY_BASE if not set
-if [ -z "$(grep '^SECRET_KEY_BASE=' .env)" ] || grep -q '^SECRET_KEY_BASE=change_this' .env; then
+# Generate SECRET_KEY_BASE if not set or still default
+if [ -z "$(grep '^SECRET_KEY_BASE=' .env | grep -v 'change_this')" ]; then
     echo "🔐 Generating SECRET_KEY_BASE..."
-    if command -v mix &> /dev/null; then
-        SECRET=$(mix phx.gen.secret 2>/dev/null || echo "ZmFrZV9zZWNyZXRfa2V5X2Jhc2VfZm9yX2RldmVsb3BtZW50X29ubHk=")
-    else
-        SECRET="ZmFrZV9zZWNyZXRfa2V5X2Jhc2VfZm9yX2RldmVsb3BtZW50X29ubHk="
-    fi
+    SECRET=$(openssl rand -base64 48 2>/dev/null || echo "ZmFrZV9zZWNyZXRfa2V5X2Jhc2VfZm9yX2RldmVsb3BtZW50X29ubHk=")
     
     if grep -q '^SECRET_KEY_BASE=' .env; then
         sed -i.bak "s|^SECRET_KEY_BASE=.*|SECRET_KEY_BASE=$SECRET|" .env && rm -f .env.bak
@@ -63,7 +74,7 @@ $COMPOSE_CMD up -d
 
 echo ""
 echo "⏳ Waiting for application to start..."
-sleep 10
+sleep 15
 
 echo ""
 echo "✅ Application started successfully!"
@@ -73,7 +84,7 @@ echo "   Website: http://localhost:4000"
 echo "   Admin:   http://localhost:4000/login"
 echo ""
 echo "🔐 Default admin credentials:"
-echo "   Email:    admin@photographer.com"
+echo "   Email:    admin@example.com"
 echo "   Password: admin123"
 echo ""
 echo "⚠️  IMPORTANT: Change the default password after first login!"
