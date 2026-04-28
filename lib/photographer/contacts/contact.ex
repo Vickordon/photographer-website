@@ -19,6 +19,7 @@ defmodule Photographer.Contacts.Contact do
     |> validate_required([:name, :email, :message])
     |> validate_length(:name, min: 2, max: 255)
     |> validate_length(:message, min: 10, max: 2000)
-    |> validate_email(:email)
+    |> validate_format(:email, ~r/^[^\s]+@[^\s]+$/, message: "must have the @ sign and no spaces")
+    |> validate_length(:email, max: 255)
   end
 end
