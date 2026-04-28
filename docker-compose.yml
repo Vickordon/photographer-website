@@ -20,23 +20,6 @@ services:
     networks:
       - photographer_network
 
-  migrate:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: photographer_migrate
-    environment:
-      MIX_ENV: prod
-      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
-      DATABASE_URL: postgresql://photographer:photographer_pass@db:5432/photographer_prod
-    depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - photographer_network
-    entrypoint: ["/app/bin/photographer"]
-    command: ["eval", "Photographer.Release.migrate()"]
-
   app:
     build:
       context: .
@@ -50,12 +33,13 @@ services:
     ports:
       - "4000:4000"
     depends_on:
-      migrate:
-        condition: service_completed_successfully
+      db:
+        condition: service_healthy
     networks:
       - photographer_network
     entrypoint: ["/app/bin/photographer"]
     command: ["start"]
+    restart: unless-stopped
 
 volumes:
   postgres_data:
