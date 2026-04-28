@@ -1,5 +1,6 @@
 import Config
 
+# Database
 config :photographer, Photographer.Repo,
   username: "postgres",
   password: "postgres",
@@ -9,6 +10,7 @@ config :photographer, Photographer.Repo,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
 
+# Endpoint
 config :photographer, PhotographerWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4000],
   debug_errors: true,
@@ -16,8 +18,7 @@ config :photographer, PhotographerWeb.Endpoint,
   code_reloader: true,
   secret_key_base: "dev_secret_key_base_12345678901234567890123456789012",
   watchers: [
-    esbuild: {Esbuild, :install_and_run, [:photographer, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:photographer, ~w(--watch)]}
+    esbuild: {Esbuild, :install_and_run, [:photographer, ~w(--sourcemap=inline --watch)]}
   ]
 
 config :photographer, PhotographerWeb.Endpoint,
