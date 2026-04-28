@@ -1,4 +1,10 @@
+# This file is responsible for configuring your application
+# and its dependencies with the aid of the Config module.
+
 import Config
+
+# Import mailer config
+import_config "mailer.exs"
 
 config :photographer,
   ecto_repos: [Photographer.Repo],
@@ -29,13 +35,6 @@ config :esbuild,
     args: ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
     cd: Path.expand("../assets", __DIR__),
     env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
-  ]
-
-config :tailwind,
-  version: "3.4.3",
-  photographer: [
-    args: ~w(--config=tailwind.config.js --input=css/app.css --output=../priv/static/assets/app.css),
-    cd: Path.expand("../assets", __DIR__)
   ]
 
 config :logger, :console, format: "$time $metadata[$level] $message\n", metadata: [:request_id]
