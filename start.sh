@@ -29,17 +29,16 @@ else
     COMPOSE_CMD="docker-compose"
 fi
 
-# Check if .env file exists, create minimal one if not
-if [ ! -f .env ]; then
-    echo "⚠️  .env file not found. Creating minimal .env..."
-    cat > .env << 'EOF'
+# Create or update .env file
+echo "🔐 Setting up environment variables..."
+cat > .env << EOF
 # Database Configuration
-DATABASE_URL=postgresql://photographer:photographer_password@db:5432/photographer_prod
+DATABASE_URL=postgresql://photographer:photographer_pass@db:5432/photographer_prod
 
 # Application Settings
-SECRET_KEY_BASE=change_this
+SECRET_KEY_BASE=$(openssl rand -base64 48 2>/dev/null || echo 'ZmFrZV9zZWNyZXRfa2V5X2Jhc2VfZm9yX2RldmVsb3BtZW50X29ubHk=')
 PORT=4000
-POOL_SIZE=10
+MIX_ENV=prod
 
 # Email Configuration (optional)
 SMTP_HOST=smtp.gmail.com
@@ -48,33 +47,23 @@ SMTP_USERNAME=
 SMTP_PASSWORD=
 SMTP_FROM=noreply@example.com
 EOF
-    echo "✅ .env file created with default values."
-    echo ""
-fi
 
-# Generate SECRET_KEY_BASE if not set or still default
-if [ -z "$(grep '^SECRET_KEY_BASE=' .env | grep -v 'change_this')" ]; then
-    echo "🔐 Generating SECRET_KEY_BASE..."
-    SECRET=$(openssl rand -base64 48 2>/dev/null || echo "ZmFrZV9zZWNyZXRfa2V5X2Jhc2VfZm9yX2RldmVsb3BtZW50X29ubHk=")
-    
-    if grep -q '^SECRET_KEY_BASE=' .env; then
-        sed -i.bak "s|^SECRET_KEY_BASE=.*|SECRET_KEY_BASE=$SECRET|" .env && rm -f .env.bak
-    else
-        echo "SECRET_KEY_BASE=$SECRET" >> .env
-    fi
-    echo "✅ SECRET_KEY_BASE generated"
-fi
+echo "✅ .env file created with secure SECRET_KEY_BASE"
+echo ""
 
 echo "📦 Building Docker images..."
-$COMPOSE_CMD build
+$COMPOSE_CMD build --no-cache
 
 echo ""
 echo "🚀 Starting services..."
 $COMPOSE_CMD up -d
 
 echo ""
+echo "⏳ Waiting for database to be ready..."
+sleep 5
+
 echo "⏳ Waiting for application to start..."
-sleep 15
+sleep 10
 
 echo ""
 echo "✅ Application started successfully!"
@@ -84,7 +73,7 @@ echo "   Website: http://localhost:4000"
 echo "   Admin:   http://localhost:4000/login"
 echo ""
 echo "🔐 Default admin credentials:"
-echo "   Email:    admin@example.com"
+echo "   Email:    [EMAIL_REDACTED]"
 echo "   Password: admin123"
 echo ""
 echo "⚠️  IMPORTANT: Change the default password after first login!"
