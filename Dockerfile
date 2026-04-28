@@ -18,6 +18,9 @@ RUN mix local.hex --force && \
 # Set environment to prod
 ENV MIX_ENV=prod
 
+# Generate SECRET_KEY_BASE for build
+ENV SECRET_KEY_BASE="dummy-key-for-build-only-not-for-production"
+
 # Copy dependency files
 COPY mix.exs ./
 
