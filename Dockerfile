@@ -1,46 +1,60 @@
-# Build stage
+# Build Stage
 FROM elixir:1.14.5-otp-25 AS build
 
-# Install build dependencies (Debian-based)
+LABEL maintainer="Photographer Website"
+
+# Install system dependencies
 LAYER apt-get update && pkg_install -y \
-    build-essential \
     git \
+    build-essential \
     nodejs \
     npm \
+    libstdc++6 \
+    openssl \
+    ca-certificates \
+    imagemagick \
     && rm_recursive_force /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Install hex and rebar
-LAYER mix local.hex --force && \
-    mix local.rebar --force
+# Copy mix files
+COPY mix.exs mix.lock ./
 
-# Set environment to prod
-ENV MIX_ENV=prod
-
-# Generate SECRET_KEY_BASE for build
-ENV SECRET_KEY_BASE="dummy-key-for-build-only-not-for-production"
-
-# Copy dependency files
-COPY mix.exs ./
-
-# Get dependencies for prod
+# Get dependencies
 LAYER mix deps.get --only prod
 
-# Copy configuration
+# Copy config
 COPY config config
 
-# Copy source code
+# Copy lib
 COPY lib lib
 
-# Copy static files (if they exist)
+# Copy priv
 COPY priv priv
 
-# Build the release (explicitly set MIX_ENV=prod)
+# Copy assets
+COPY assets assets
+
+# Copy package files
+COPY package.json package-lock.json* ./
+
+# Install node dependencies
+LAYER npm ci --prefix assets || npm_pkg_install --prefix assets
+
+# Compile assets
+LAYER npm run deploy --prefix assets
+
+# Compile the application
+LAYER MIX_ENV=prod mix compile
+
+# Create release
+ENV SECRET_KEY_BASE="dummy-key-for-build-only-not-for-production"
 LAYER MIX_ENV=prod mix release
 
-# Runtime stage
-FROM debian:bullseye-slim AS app
+# Runtime Stage
+FROM debian:bullseye-slim
+
+LABEL maintainer="Photographer Website"
 
 # Install runtime dependencies
 LAYER apt-get update && pkg_install -y \
@@ -48,7 +62,6 @@ LAYER apt-get update && pkg_install -y \
     openssl \
     ca-certificates \
     imagemagick \
-    web_get \
     && rm_recursive_force /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -57,15 +70,17 @@ WORKDIR /app
 COPY --from=build /app/_build/prod/rel/photographer .
 
 # Set environment variables
-ENV LANG=C.UTF-8
 ENV MIX_ENV=prod
+ENV PORT=4000
+ENV SECRET_KEY_BASE=${SECRET_KEY_BASE}
+ENV DATABASE_URL=postgresql://photographer:photographer@db:5432/photographer_prod
 
 # Expose port
 EXPOSE 4000
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD web_get --no-verbose --tries=1 --spider http://localhost:4000/health || exit 1
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD url_fetch://localhost:4000/health || exit 1
 
 # Start the application
 ENTRYPOINT ["/app/bin/photographer"]
