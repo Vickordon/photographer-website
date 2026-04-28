@@ -1,62 +1,53 @@
 # Build stage
-FROM hexpm/elixir:1.15.7-erlang-26.1.2-alpine-3.18.4 AS build
+FROM hexpm/elixir:1.16.0-erlang-26.2.1-alpine-3.19.0 AS build
 
 # Install build dependencies
 RUN apk add --no-cache build-base git nodejs npm
 
 WORKDIR /app
 
-# Install hex + rebar
+# Install hex and rebar
 RUN mix local.hex --force && \
     mix local.rebar --force
 
-# Copy mix files
+# Copy dependency files
 COPY mix.exs mix.lock ./
 
 # Get dependencies
 RUN mix deps.get --only prod
 
-# Copy application files
+# Copy configuration
 COPY config config
+
+# Copy source code
 COPY lib lib
+
+# Copy static files (if they exist)
 COPY priv priv
-COPY assets assets
 
-# Install and build assets
-RUN cd assets && npm install && npm run deploy
-
-# Compile release
+# Build the release
 RUN mix release
 
 # Runtime stage
-FROM alpine:3.18.4 AS app
+FROM alpine:3.19.0 AS app
 
-# Install runtime dependencies
-RUN apk add --no-cache libstdc++ openssl ca_certificates imagemagick
+# Install runtime dependencies - FIX: correct package names
+RUN apk add --no-cache libstdc++ openssl ca-certificates imagemagick
 
 WORKDIR /app
 
 # Copy release from build stage
-COPY --from=build /app/_build/prod/rel/photographer ./
+COPY --from=build /app/_build/dev/rel/photographer .
 
-# Create uploads directory
-RUN mkdir -p priv/static/uploads && \
-    chown -R appuser:appgroup priv/static/uploads
-
-# Create non-root user
-RUN addgroup -g 1000 -S appgroup && \
-    adduser -u 1000 -S appuser -G appgroup
-
-USER appuser
+# Set environment variables
+ENV LANG=C.UTF-8
+ENV MIX_ENV=prod
 
 # Expose port
 EXPOSE 4000
 
-# Set environment variables
-ENV MIX_ENV=prod
-
 # Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=40s \
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:4000/health || exit 1
 
 # Start the application
