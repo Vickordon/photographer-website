@@ -1,0 +1,15 @@
+<section class="portfolio">
+  <div class="container">
+    <h1>Моє портфоліо</h1>
+    <div class="gallery">
+      <%= for photo <- @photos do %>
+        <div class="gallery-item">
+          <img src={photo.url} alt={photo.title} loading="lazy" />
+          <div class="gallery-overlay">
+            <h3><%= photo.title %></h3>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</section>
