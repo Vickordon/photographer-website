@@ -1,0 +1,43 @@
+# Dependencies
+deps/*.exs
+
+# Compiled files
+*.beam
+*.so
+*.dll
+
+# Generated files
+/_build/
+/priv/static/assets/
+
+# Editor directories
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+*.tmp
+
+# Coverage
+cover/
+
+# Node modules (for assets)
+assets/node_modules/
+
+# Elixir language server
+.elixir_ls/
