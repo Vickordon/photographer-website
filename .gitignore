@@ -1,5 +1,5 @@
 # Dependencies
-deps/*.exs
+deps/
 
 # Compiled files
 *.beam
@@ -8,7 +8,6 @@ deps/*.exs
 
 # Generated files
 /_build/
-/priv/static/assets/
 
 # Editor directories
 .idea/
@@ -36,8 +35,15 @@ tmp/
 # Coverage
 cover/
 
-# Node modules (for assets)
+# Node modules
 assets/node_modules/
 
 # Elixir language server
 .elixir_ls/
+
+# Docker
+docker-compose.override.yml
+
+# Uploads
+priv/static/uploads/*
+!priv/static/uploads/.gitkeep
