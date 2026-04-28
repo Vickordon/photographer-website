@@ -16,10 +16,14 @@ COPY mix.exs mix.lock ./
 # Get dependencies
 RUN mix deps.get --only prod
 
-# Copy application files
+# Copy application files (тільки ті що існують)
 COPY config config
 COPY lib lib
-COPY priv priv
+
+# Copy priv directory (якщо існує)
+COPY priv priv 2>/dev/null || true
+
+# Copy assets
 COPY assets assets
 
 # Install and build assets
