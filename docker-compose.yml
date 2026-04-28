@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15.4-alpine
+    container_name: photographer_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: photographer
+      POSTGRES_PASSWORD: photographer_password
+      POSTGRES_DB: photographer_prod
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U photographer"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: photographer_app
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://photographer:photographer_password@db:5432/photographer_prod
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE:-ZmFrZV9zZWNyZXRfa2V5X2Jhc2VfZm9yX2RldmVsb3BtZW50X29ubHk=}
+      PORT: 4000
+      POOL_SIZE: 10
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-noreply@photographer.com}
+    ports:
+      - "4000:4000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - uploads_data:/app/priv/static/uploads
+    command: >
+      sh -c "bin/photographer eval 'Photographer.Repo.create()' &&
+             bin/photographer eval 'Photographer.Repo.migrate()' &&
+             bin/photographer eval 'Photographer.Seeds.run()' &&
+             bin/photographer start"
+
+volumes:
+  postgres_data:
+  uploads_data:
+
+networks:
+  default:
+    name: photographer_network
