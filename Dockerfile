@@ -1,5 +1,5 @@
 # Build stage
-FROM elixir:1.15.7-otp-26-alpine-3.18 AS build
+FROM elixir:1.14.5-otp-25 AS build
 
 # Install build dependencies
 RUN apk add --no-cache build-base git nodejs npm
