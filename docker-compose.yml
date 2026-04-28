@@ -45,6 +45,7 @@ services:
     command: >
       sh -c "bin/photographer eval 'Photographer.Repo.create()' 2>/dev/null || true &&
              bin/photographer eval 'Photographer.Repo.migrate()' &&
+             bin/photographer eval 'Photographer.Seeds.run()' 2>/dev/null || true &&
              bin/photographer start"
 
 volumes:
