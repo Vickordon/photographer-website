@@ -1,8 +1,13 @@
 # Build stage
 FROM elixir:1.14.5-otp-25 AS build
 
-# Install build dependencies
-RUN apk add --no-cache build-base git nodejs npm
+# Install build dependencies (Debian-based)
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    git \
+    nodejs \
+    npm \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -29,10 +34,16 @@ COPY priv priv
 RUN mix release
 
 # Runtime stage
-FROM alpine:3.18 AS app
+FROM debian:bullseye-slim AS app
 
 # Install runtime dependencies
-RUN apk add --no-cache libstdc++ openssl ca-certificates imagemagick
+RUN apt-get update && apt-get install -y \
+    libstdc++6 \
+    openssl \
+    ca-certificates \
+    imagemagick \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
