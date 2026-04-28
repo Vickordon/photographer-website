@@ -1,8 +1,5 @@
 import Config
 
-# Import mailer config
-import_config "mailer.exs"
-
 config :photographer, PhotographerWeb.Endpoint,
   url: [host: "localhost"],
   adapter: Phoenix.Endpoint.Cowboy2Adapter,
