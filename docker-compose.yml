@@ -38,8 +38,8 @@ services:
     networks:
       - photographer_network
     command: >
-      sh -c "./bin/migrate &&
-             ./bin/server"
+      sh -c "./bin/photographer eval 'Photographer.Release.migrate()' &&
+             ./bin/photographer start"
 
 volumes:
   postgres_data:
