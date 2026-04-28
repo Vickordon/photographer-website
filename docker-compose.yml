@@ -11,7 +11,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5434:5432"  # Using port 5434 to avoid conflicts with other PostgreSQL instances
+      - "5435:5432"  # Using port 5435 to avoid conflicts
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U photographer"]
       interval: 10s
@@ -31,7 +31,7 @@ services:
       DATABASE_URL: postgresql://photographer:photographer_pass@db:5432/photographer_prod
       PORT: 4000
     ports:
-      - "4001:4000"  # Using port 4001 to avoid conflicts
+      - "4002:4000"  # Using port 4002 to avoid conflicts
     depends_on:
       db:
         condition: service_healthy
