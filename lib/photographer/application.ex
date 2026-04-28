@@ -1,4 +1,6 @@
 defmodule Photographer.Application do
+  @moduledoc false
+
   use Application
 
   @impl true
@@ -13,5 +15,11 @@ defmodule Photographer.Application do
 
     opts = [strategy: :one_for_one, name: Photographer.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  @impl true
+  def config_change(changed, _new, removed) do
+    PhotographerWeb.Endpoint.config_change(changed, removed)
+    :ok
   end
 end
