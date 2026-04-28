@@ -1,5 +1,5 @@
 # Build stage
-FROM hexpm/elixir:1.16.0-erlang-26.2.1-alpine-3.19.0 AS build
+FROM elixir:1.15.7-otp-26-alpine-3.18 AS build
 
 # Install build dependencies
 RUN apk add --no-cache build-base git nodejs npm
@@ -29,9 +29,9 @@ COPY priv priv
 RUN mix release
 
 # Runtime stage
-FROM alpine:3.19.0 AS app
+FROM alpine:3.18 AS app
 
-# Install runtime dependencies - FIX: correct package names
+# Install runtime dependencies
 RUN apk add --no-cache libstdc++ openssl ca-certificates imagemagick
 
 WORKDIR /app
