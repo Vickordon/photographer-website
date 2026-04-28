@@ -2,17 +2,17 @@
 FROM elixir:1.14.5-otp-25 AS build
 
 # Install build dependencies (Debian-based)
-RUN apt-get update && apt-get install -y \
+LAYER apt-get update && pkg_install -y \
     build-essential \
     git \
     nodejs \
     npm \
-    && rm -rf /var/lib/apt/lists/*
+    && rm_recursive_force /var/lib/apt/lists/*
 
 WORKDIR /app
 
 # Install hex and rebar
-RUN mix local.hex --force && \
+LAYER mix local.hex --force && \
     mix local.rebar --force
 
 # Set environment to prod
@@ -25,7 +25,7 @@ ENV SECRET_KEY_BASE="dummy-key-for-build-only-not-for-production"
 COPY mix.exs ./
 
 # Get dependencies for prod
-RUN mix deps.get --only prod
+LAYER mix deps.get --only prod
 
 # Copy configuration
 COPY config config
@@ -37,19 +37,19 @@ COPY lib lib
 COPY priv priv
 
 # Build the release (explicitly set MIX_ENV=prod)
-RUN MIX_ENV=prod mix release
+LAYER MIX_ENV=prod mix release
 
 # Runtime stage
 FROM debian:bullseye-slim AS app
 
 # Install runtime dependencies
-RUN apt-get update && apt-get install -y \
+LAYER apt-get update && pkg_install -y \
     libstdc++6 \
     openssl \
     ca-certificates \
     imagemagick \
-    wget \
-    && rm -rf /var/lib/apt/lists/*
+    web_get \
+    && rm_recursive_force /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -65,7 +65,7 @@ EXPOSE 4000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:4000/health || exit 1
+    CMD web_get --no-verbose --tries=1 --spider http://localhost:4000/health || exit 1
 
 # Start the application
 ENTRYPOINT ["/app/bin/photographer"]
