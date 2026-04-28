@@ -16,4 +16,3 @@ config :photographer, PhotographerWeb.Endpoint,
   server: false
 
 config :logger, level: :warning
-config :phoenix_test, :endpoint_module, PhotographerWeb.Endpoint
