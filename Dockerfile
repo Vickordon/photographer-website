@@ -15,10 +15,13 @@ WORKDIR /app
 RUN mix local.hex --force && \
     mix local.rebar --force
 
+# Set environment to prod
+ENV MIX_ENV=prod
+
 # Copy dependency files
 COPY mix.exs ./
 
-# Get dependencies (will generate mix.lock automatically)
+# Get dependencies for prod
 RUN mix deps.get --only prod
 
 # Copy configuration
@@ -30,8 +33,8 @@ COPY lib lib
 # Copy static files (if they exist)
 COPY priv priv
 
-# Build the release
-RUN mix release
+# Build the release (explicitly set MIX_ENV=prod)
+RUN MIX_ENV=prod mix release
 
 # Runtime stage
 FROM debian:bullseye-slim AS app
@@ -48,7 +51,7 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Copy release from build stage
-COPY --from=build /app/_build/dev/rel/photographer .
+COPY --from=build /app/_build/prod/rel/photographer .
 
 # Set environment variables
 ENV LANG=C.UTF-8
