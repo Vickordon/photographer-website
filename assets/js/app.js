@@ -44,7 +44,7 @@ document.querySelectorAll('form').forEach(form => {
     })
     if (!valid) {
       e.preventDefault()
-      alert('Будь ласка, заповніть всі обов'язкові поля')
+      alert("Будь ласка, заповніть всі обов'язкові поля")
     }
   })
 })

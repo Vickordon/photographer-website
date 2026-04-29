@@ -1,23 +1,33 @@
 import Config
 
-config :photographer, PhotographerWeb.Endpoint,
-  url: [host: "localhost"],
-  adapter: Phoenix.Endpoint.Cowboy2Adapter,
-  render_errors: [
-    formats: [html: PhotographerWeb.ErrorHTML, json: PhotographerWeb.ErrorJSON],
-    layout: false
-  ],
-  pubsub_server: Photographer.PubSub,
-  live_view: [signing_salt: "photographer_live_salt"]
+# Runtime configuration for production
+if config_env() == :prod do
+  database_url =
+    System.get_env("DATABASE_URL") ||
+      raise """
+      environment variable DATABASE_URL is missing.
+      For example: postgresql://user:pass@hostname/database
+      """
 
-config :photographer, Photographer.Mailer, adapter: Swoosh.Adapters.Local
+  config :photographer, Photographer.Repo,
+    url: database_url,
+    pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
+    ssl: false
 
-config :esbuild,
-  version: "0.17.11",
-  photographer: [
-    args: ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
-    cd: Path.expand("../assets", __DIR__),
-    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
-  ]
+  secret_key_base =
+    System.get_env("SECRET_KEY_BASE") ||
+      raise """
+      environment variable SECRET_KEY_BASE is missing.
+      You can generate one by calling: mix phx.gen.secret
+      """
 
-config :phoenix, :json_library, Jason
+  config :photographer, PhotographerWeb.Endpoint,
+    http: [
+      ip: {0, 0, 0, 0},
+      port: String.to_integer(System.get_env("PORT") || "4000")
+    ],
+    secret_key_base: secret_key_base,
+    server: true
+
+  config :photographer, Photographer.Mailer, adapter: Swoosh.Adapters.Local
+end

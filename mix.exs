@@ -35,7 +35,6 @@ defmodule Photographer.MixProject do
       {:floki, ">= 0.30.0", only: :test, runtime: false},
       {:phoenix_live_dashboard, "~> 0.8.2"},
       {:esbuild, "~> 0.8", runtime: false},
-      {:tailwind, "~> 0.2.0", runtime: false},
       {:telemetry_metrics, "~> 0.6"},
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.20"},
@@ -54,9 +53,9 @@ defmodule Photographer.MixProject do
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
-      "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.build": ["tailwind photographer", "esbuild photographer"],
-      "assets.deploy": ["tailwind photographer --minify", "esbuild photographer --minify", "phx.digest"]
+      "assets.setup": ["esbuild.install --if-missing"],
+      "assets.build": ["esbuild photographer"],
+      "assets.deploy": ["esbuild photographer --minify", "phx.digest"]
     ]
   end
 end
